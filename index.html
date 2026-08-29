@@ -19,12 +19,16 @@
   --muted: rgba(26,24,48,0.45);
   --v: #eb0065; --p: #984eff; --b: #9333ea;
   --r: 20px;
-  --hero-stable-h: 100svh;
-  --hero-boundary: 85svh;
-  --hero-overlap: 15svh;
+  /* These are overwritten by hero-scene.ts with pixel values derived from the
+     LARGE viewport (max of innerHeight / visualViewport.height). Keep the
+     pre-script fallbacks in lvh so the first paint already matches, otherwise
+     every element below the hero jumps once the module runs (large CLS). */
+  --hero-stable-h: 100lvh;
+  --hero-boundary: 85lvh;
+  --hero-overlap: 15lvh;
   --hero-stage-top: 0px;
-  --hero-stage-height: 85svh;
-  --hero-copy-top: min(calc(9svh + 24px), calc(38svh - 128px));
+  --hero-stage-height: 85lvh;
+  --hero-copy-top: min(calc(9lvh + 24px), calc(38lvh - 128px));
   --timeline-gap: 16px;
 }
 html { scroll-behavior: auto; width: 100%; max-width: 100%; min-height: 100%; background: var(--bg); }
