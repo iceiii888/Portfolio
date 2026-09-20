@@ -90,7 +90,7 @@ export const HERO_C_FRAME_CACHE_CAPACITY = HERO_CONTRACT.introEndFrame - HERO_CO
  * snaps through `snapFrameToStride`, and the readiness registry is built from
  * the same grid.
  */
-export const HERO_MOBILE_FRAME_STRIDE = 2;
+export const HERO_MOBILE_FRAME_STRIDE = 1;
 /** Number of frames kept around a moving C target for nearest-ready fallback. */
 export const HERO_C_PREFETCH_RADIUS = 3;
 /** Maximum simultaneous image decodes after the intro gate. */
