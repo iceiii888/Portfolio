@@ -80,6 +80,17 @@ const MAX_DIAGNOSTIC_EVENTS = 128;
  * the 150-frame sequence length.
  */
 export const HERO_C_FRAME_CACHE_CAPACITY = HERO_CONTRACT.introEndFrame - HERO_CONTRACT.startFrame + 1;
+/**
+ * Mobile requests only every Nth frame of the sequence. The timeline keeps its
+ * full range and duration; the head simply steps in slightly coarser
+ * increments, which halves the first-screen payload (the 32-frame intro gate
+ * was ~919 KB and was the dominant hold on mobile load).
+ *
+ * TO REVERT: set this to 1. Nothing else needs to change — every request path
+ * snaps through `snapFrameToStride`, and the readiness registry is built from
+ * the same grid.
+ */
+export const HERO_MOBILE_FRAME_STRIDE = 2;
 /** Number of frames kept around a moving C target for nearest-ready fallback. */
 export const HERO_C_PREFETCH_RADIUS = 3;
 /** Maximum simultaneous image decodes after the intro gate. */
@@ -601,9 +612,30 @@ export function mountHeroScene(options: HeroSceneOptions): HeroSceneHandle {
   } | null = null;
   let nativeHandoff: HeroSceneSnapshot["renderer"]["handoff"] = null;
   let cRendererStarted = false;
-  const introFrameIndices = Array.from(
-    { length: HERO_CONTRACT.introEndFrame - HERO_CONTRACT.startFrame + 1 },
-    (_, offset) => HERO_CONTRACT.startFrame + offset,
+  // Frame grid. Desktop keeps every frame; mobile keeps every Nth so the
+  // first-screen payload is halved. Every request path snaps onto this grid.
+  const sequenceStride = mobileGeometry.mobile ? Math.max(1, Math.trunc(HERO_MOBILE_FRAME_STRIDE)) : 1;
+  const sequenceFrameIndices: number[] = [];
+  for (
+    let frame = HERO_CONTRACT.startFrame;
+    frame <= HERO_CONTRACT.endFrame;
+    frame += sequenceStride
+  ) {
+    sequenceFrameIndices.push(frame);
+  }
+  const sequenceFrameSet = new Set(sequenceFrameIndices);
+
+  function snapFrameToStride(frame: number): number {
+    const clamped = clamp(Math.round(frame), HERO_CONTRACT.startFrame, HERO_CONTRACT.endFrame);
+    if (sequenceStride <= 1 || sequenceFrameSet.has(clamped)) return clamped;
+    const snapped = Math.round(clamped / sequenceStride) * sequenceStride;
+    return sequenceFrameSet.has(snapped)
+      ? snapped
+      : sequenceFrameIndices[sequenceFrameIndices.length - 1];
+  }
+
+  const introFrameIndices = sequenceFrameIndices.filter(
+    (frame) => frame <= HERO_CONTRACT.introEndFrame,
   );
   let introCursor = 0;
   let laterQueueStarted = false;
@@ -612,7 +644,7 @@ export function mountHeroScene(options: HeroSceneOptions): HeroSceneHandle {
   const listeners: Array<() => void> = [];
   const events: HeroSceneEvent[] = [];
   const registry = new AssetReadinessRegistry(
-    Array.from({ length: HERO_CONTRACT.totalFrameCount }, (_, frame) => ({
+    sequenceFrameIndices.map((frame) => ({
       key: `frame-${padFrame(frame)}`,
       frame,
       phase: frame <= HERO_CONTRACT.introEndFrame ? ("intro" as const) : ("later" as const),
@@ -643,7 +675,10 @@ export function mountHeroScene(options: HeroSceneOptions): HeroSceneHandle {
     return new Set(cFrameCache.frames().map(frameKey));
   }
 
-  function requestImage(index: number, providedImage?: HTMLImageElement): void {
+  function requestImage(requestedIndex: number, providedImage?: HTMLImageElement): void {
+    // Snap here too: this is the last gate before a network request, so no
+    // off-grid frame can be fetched regardless of which path asked for it.
+    const index = snapFrameToStride(requestedIndex);
     if (
       disposed
       || imageStarted.has(index)
@@ -656,7 +691,7 @@ export function mountHeroScene(options: HeroSceneOptions): HeroSceneHandle {
   }
 
   function queueImage(index: number, front = false): void {
-    const normalized = clamp(Math.round(index), HERO_CONTRACT.startFrame, HERO_CONTRACT.endFrame);
+    const normalized = snapFrameToStride(index);
     if (
       imageStarted.has(normalized)
       || imageFailed.has(normalized)
