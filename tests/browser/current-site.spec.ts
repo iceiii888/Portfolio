@@ -954,8 +954,8 @@ test("production runtime assets are served without hero degradation", async ({ p
   for (const path of [
     "/Кадры/frame_000_delay-0.067s.webp",
     "/icon/figma.svg",
-    "/Проекты/Fridj/Slice_1.png",
-    "/Проекты/UNNO_eng/screen_1.jpg",
+    "/Проекты/Fridj/Slice_1.webp",
+    "/Проекты/UNNO_eng/screen_1_part1.webp",
   ]) {
     const response = await page.request.get(path);
     expect(response.ok(), `${path} should be present in the deployable output`).toBe(true);

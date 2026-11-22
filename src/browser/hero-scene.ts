@@ -65,7 +65,9 @@ const HERO_DRIFT_FRAMES = HERO_CONTRACT.driftFrames;
 const HERO_EXIT_HOLD_MS = HERO_CONTRACT.exitHoldDurationMs;
 const DEFAULT_IMAGE_PREFIX = "Кадры/frame_";
 const DEFAULT_IMAGE_SUFFIX = "_delay-0.067s.webp";
-const DEFAULT_NOISE_SOURCE = "Кадры/ШУМ.png";
+// The former 2.4 MB grain texture was pure white blended with `multiply`, which
+// is a visual no-op, so no texture is requested unless a caller supplies one.
+const DEFAULT_NOISE_SOURCE: string | null = null;
 const DEFAULT_HERO_BACKGROUND = "#edeef6";
 const MAX_DIAGNOSTIC_EVENTS = 128;
 // Keep the first-screen request burst bounded. Intro frames are intentionally
@@ -1563,7 +1565,8 @@ export function mountHeroScene(options: HeroSceneOptions): HeroSceneHandle {
   function ensureNoiseLoaded(): void {
     if (noiseRequested || mobileGeometry.mobile) return;
     noiseRequested = true;
-    noiseImage.src = options.noiseSource ?? DEFAULT_NOISE_SOURCE;
+    const source = options.noiseSource ?? DEFAULT_NOISE_SOURCE;
+    if (source) noiseImage.src = source;
   }
 
   function syncGeometry(force: boolean): void {
@@ -1676,6 +1679,10 @@ export function mountHeroScene(options: HeroSceneOptions): HeroSceneHandle {
     beginIntroIfReady("intro assets ready");
     maybeCompleteNativeHandoff();
     if (reducedMotion || (rendererActive === "c" && phase !== "loading")) render();
+    // While C is still loading its intro frames, paint the frame that is on
+    // screen (frame 0) as a static poster as soon as it decodes, instead of
+    // showing an empty stage until the whole intro window is ready.
+    else if (rendererActive === "c" && phase === "loading" && frame === Math.round(displayFrame)) render();
     pumpImageQueue();
   }
 

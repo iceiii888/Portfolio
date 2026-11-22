@@ -147,6 +147,9 @@ section { position: relative; z-index: 1; }
 #case-overlay-tags span { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; padding: 0.22rem 0.65rem; border-radius: 100px; background: rgba(152,78,255,0.2); color: #c39eff; border: 1px solid rgba(152,78,255,0.3); }
 #case-images { line-height: 0; font-size: 0; border-radius: 20px; overflow: hidden; }
 #case-images img { display: block; width: 100%; vertical-align: bottom; margin: 0; padding: 0; }
+/* Very tall slides are split into parts; overlap by 1px so fractional
+   heights never leave a hairline of the dark overlay between them. */
+#case-images img + img { margin-top: -1px; }
 @media(max-width:600px)  { .case-grid { grid-template-columns: 1fr; } }
 @media(max-width:900px)  { #case-overlay-inner { padding: 5rem 0 4rem; } }
 
@@ -371,11 +374,12 @@ footer { text-align: center; padding: 2rem 4rem; border-top: 1px solid var(--gb)
 .hero-native-video { z-index: 0; visibility: visible; }
 .hero-native-poster { z-index: 2; visibility: visible; }
 /* loader */
-#scrolly-loader { position: absolute; inset: 0; z-index: 20; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.6s; }
-#scrolly-loader.hidden { opacity: 0; pointer-events: none; }
-.loader-label { font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
-.loader-bar-bg { width: 180px; height: 2px; background: rgba(120,100,180,0.15); border-radius: 2px; margin-top: 1.2rem; overflow: hidden; }
-.loader-bar-fill { height: 100%; background: linear-gradient(90deg, #eb0065, #984eff); width: 0%; transition: width 0.12s; border-radius: 2px; }
+/* The first frame is painted as a static poster while the rest of the hero
+   loads, so the loader no longer covers the stage with a "Loading" screen.
+   The element stays for the readiness state (its `hidden` class) only. */
+#scrolly-loader { position: absolute; inset: 0; z-index: 20; pointer-events: none; background: transparent; }
+#scrolly-loader.hidden { opacity: 0; }
+.loader-label, .loader-bar-bg { display: none; }
 /* text overlays */
 .st { position: absolute; z-index: 10; pointer-events: none; opacity: 0; will-change: opacity; }
 #st-reduced { display: none; }
@@ -386,7 +390,7 @@ footer { text-align: center; padding: 2rem 4rem; border-top: 1px solid var(--gb)
 /* explore CTA — sits ON the white strip line, centered */
 #explore-cta { position: absolute; left: 50%; transform: translateX(-50%) translateY(-50%); z-index: 40; opacity: 0; pointer-events: none; white-space: nowrap; top: var(--hero-boundary); }
 /* second noise layer — on top of everything for texture */
-#noise-top { position: absolute; top: 0; left: 0; right: 0; height: 100%; z-index: 21; background: url('Кадры/ШУМ.png') center/cover; mix-blend-mode: multiply; opacity: 0.42; pointer-events: none; }
+#noise-top { position: absolute; top: 0; left: 0; right: 0; height: 100%; z-index: 21; pointer-events: none; }
 /* ── Hero typography scale ─────────────────────────────
    H0 → UX/UI · 14+      (gradient, biggest)
    H1 → Designer · years  (purple, large)
@@ -420,7 +424,10 @@ footer { text-align: center; padding: 2rem 4rem; border-top: 1px solid var(--gb)
    frame drift made it look like a loading indicator that could run backwards. */
 
 @media (max-width: 900px) {
-  nav { padding: 1rem 1.5rem; } .nav-links { display: none; }
+  nav { padding: 1rem 1.5rem; }
+  /* Keep a way to reach Contact on phones; section links stay hidden. */
+  .nav-links { gap: 0; } .nav-links li:not(:last-child) { display: none; }
+  .nav-cta { padding: 0.4rem 1rem; font-size: 0.8rem; }
   #about .sw { grid-template-columns: 1fr; gap: 2.5rem; }
   .sw { padding: 5rem 1.5rem; }
   .pcard.feat { grid-column: span 1; }
@@ -566,7 +573,7 @@ footer { text-align: center; padding: 2rem 4rem; border-top: 1px solid var(--gb)
 <div id="explore-cta">
   <a href="#about" class="btn btn-primary">Explore work ↓</a>
 </div>
-<div id="scroll-hint">
+<div id="scroll-hint" class="gone">
   <span class="scroll-hint-label">Scroll down</span>
   <div class="scroll-hint-arrow"></div>
 </div>
@@ -741,7 +748,7 @@ footer { text-align: center; padding: 2rem 4rem; border-top: 1px solid var(--gb)
     <!-- CASE CARDS -->
     <div class="case-grid">
       <div class="case-card" data-case-id="fridj" role="button" tabindex="0">
-        <img class="case-cover-img" src="Проекты/Fridj/cover.png" alt="Fridgie cover" loading="lazy" fetchpriority="low">
+        <img class="case-cover-img" src="Проекты/Fridj/cover.webp" alt="Fridgie cover" loading="lazy" fetchpriority="low">
         <div class="case-info">
           <div class="case-tag-row"><span class="case-tag">Mobile App</span><span class="case-tag">UX/UI</span></div>
           <div class="case-name">Fridgie</div>
@@ -750,7 +757,7 @@ footer { text-align: center; padding: 2rem 4rem; border-top: 1px solid var(--gb)
         </div>
       </div>
       <div class="case-card" data-case-id="beehive" role="button" tabindex="0">
-        <img class="case-cover-img" src="Проекты/пчелы/cover.png" alt="BeeHive cover" loading="lazy" fetchpriority="low">
+        <img class="case-cover-img" src="Проекты/пчелы/cover.webp" alt="BeeHive cover" loading="lazy" fetchpriority="low">
         <div class="case-info">
           <div class="case-tag-row"><span class="case-tag">Mobile App</span><span class="case-tag">UX/UI</span></div>
           <div class="case-name">BeeHive</div>
@@ -759,7 +766,7 @@ footer { text-align: center; padding: 2rem 4rem; border-top: 1px solid var(--gb)
         </div>
       </div>
       <div class="case-card" data-case-id="unno" role="button" tabindex="0">
-        <img class="case-cover-img" src="Проекты/UNNO_eng/Cover_2.png" alt="UNNO cover" loading="lazy" fetchpriority="low">
+        <img class="case-cover-img" src="Проекты/UNNO_eng/Cover_2.webp" alt="UNNO cover" loading="lazy" fetchpriority="low">
         <div class="case-info">
           <div class="case-tag-row"><span class="case-tag">Branding</span><span class="case-tag">Identity</span></div>
           <div class="case-name">UNNO</div>
@@ -768,7 +775,7 @@ footer { text-align: center; padding: 2rem 4rem; border-top: 1px solid var(--gb)
         </div>
       </div>
       <div class="case-card" data-case-id="restfood" role="button" tabindex="0">
-        <img class="case-cover-img" src="Проекты/RestFood/cover.png" alt="RestFood cover" loading="lazy" fetchpriority="low">
+        <img class="case-cover-img" src="Проекты/RestFood/cover.webp" alt="RestFood cover" loading="lazy" fetchpriority="low">
         <div class="case-info">
           <div class="case-tag-row"><span class="case-tag">Mobile App</span><span class="case-tag">UX/UI</span></div>
           <div class="case-name">RestFood</div>

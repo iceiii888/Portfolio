@@ -16,8 +16,8 @@ describe("case overlay manifest", () => {
     expect(Object.keys(CASE_PROJECTS)).toEqual(["fridj", "beehive", "unno", "restfood"]);
     expect(CASE_PROJECTS.fridj.images).toHaveLength(16);
     expect(CASE_PROJECTS.beehive.images).toHaveLength(18);
-    expect(CASE_PROJECTS.unno.images).toHaveLength(3);
-    expect(CASE_PROJECTS.restfood.images).toHaveLength(7);
+    expect(CASE_PROJECTS.unno.images).toHaveLength(7);
+    expect(CASE_PROJECTS.restfood.images).toHaveLength(8);
   });
 
   it("references only source assets that can be copied into production", () => {
